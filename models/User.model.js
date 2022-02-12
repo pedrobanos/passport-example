@@ -7,22 +7,35 @@ const PASSWORD_PATTERN = /^.{8,}$/i;
 const SALT_ROUNDS = 10;
 
 const userSchema = new Schema({
-  name: {
+  userName: {
     type: String,
-    required: 'name is required',
-    minLength: [3, 'name needs at least 3 chars']
+    required: [true, 'Name is required']
+  },
+  fullname: {
+    type: String,
+    // required: [true, 'Fullname is required']
+  },
+  address: {
+    type: String,
   },
   email: {
     type: String,
-    required: 'email is required',
-    match: [EMAIL_PATTERN, 'email is not valid'],
+    required: [true, 'Email is required'],
+    match: EMAIL_PATTERN,
     unique: true
   },
   password: {
     type: String,
-    required: 'password is required',
-    match: [PASSWORD_PATTERN, 'password needs at least 8 chars'],
+    required: [true, 'Password is required'],
+    match: [PASSWORD_PATTERN, 'Password must contain at least 8 chars!']
   },
+  googleID: {
+    type: String
+  },
+  image:{
+    type: String,
+    default:"https://bootdey.com/img/Content/avatar/avatar7.png"
+  }
 });
 
 userSchema.pre('save', function (next){

@@ -12,6 +12,11 @@
         <li class="nav-item">
           <a class="nav-link active" aria-current="page" href="/register">Register</a>
         </li>
+        {{#if currentUser}}
+        <li class="nav-item">
+        <a class="nav-link active" aria-current="page" href="/logout">Logout</a>
+        </li>
+        {{/if}}
     </div>
   </div>
 

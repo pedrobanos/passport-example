@@ -42,18 +42,14 @@ app.use(passport.session());
 /**
  * Configure routes
  */
-// app.use((req, res, next) =>{
-//   res.locals.currentUser = req.user;
-//   next();
-// })
+app.use((req, res, next) =>{
+   res.locals.currentUser = req.user;
+   next();
+ })
 
 const router = require('./config/routes.config');
 
 app.use('/', router);
-
-
-
-
 
 app.use((req, res, next) => {
   next(createError(404, 'Page not found'));

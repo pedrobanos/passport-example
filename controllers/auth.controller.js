@@ -1,64 +1,77 @@
-
 const mongoose = require('mongoose');
 const passport = require('passport');
-const User = require('../models/User.model')
-
+const User = require('../models/User.model');
 
 module.exports.register = (req, res, next) => {
-  res.render('auth/register', )
-}
-
-module.exports.doRegister =(req, res, next) => {
-  const user = { name, email, password } = req.body
-  
-  const renderWithErrors = (errors) => {
-    res.render('auth/register',{
-      errors,
-      user
-    })
-  }
-  User.findOne({ email })
-  .then((userFound) =>{
-    if(userFound) {
-      renderWithErrors({ email: 'Invalid Email or Password'})
-    } else {
-      return User.create(user).then(() => res.redirect('/'))
-    }
-  })
-  .catch(err => {
-    if(err instanceof mongoose.Error.ValidationError){
-      renderWithErrors(err.errors)
-    }else{
-      console.log('ERROR')
-      next(err)
-    }
-  })
+  res.render('auth/register')
 }
 
 module.exports.login = (req, res, next) => {
-  res.render('auth/login', )
+  res.render('auth/login')
 }
 
+module.exports.doRegister = (req, res, next) => {
+  const user = req.body;
 
-module.exports.doLogin = (req,res, next) =>{
-  passport.authenticate('local-auth', (err, user, validation) =>{
-    if (err){
-      next (err)
-    }else if (!User){
-      res.status(404).render('auth/login', { errorMessage: validation.error })
-    }else {
-      req.login(user, (loginError) =>{
-        if(loginError){
+  // { email: 'Already in use' }
+  const renderWithErrors = (errors) => {
+    res.render('auth/register', { errors, user })
+  }
+
+  User.findOne({ email: user.email })
+    .then((userFound) => {
+      if (userFound) {
+        renderWithErrors({ email: 'Email already in use' })
+      } else {
+        if (req.file) {
+          user.image = req.file.path
+        }
+        return User.create(user)
+          .then(() => {
+            res.redirect('/login')
+          })
+
+      }
+    })
+    .catch(err => {
+      if (err instanceof mongoose.Error.ValidationError) {
+        renderWithErrors(err.errors)
+      } else {
+        next(err)
+      }
+    })
+}
+
+// Funcion Login
+
+const doLogin = (req, res, next, provider = 'local-auth') => {
+  passport.authenticate(provider, (err, user, validations) => {
+    if (err) {
+      next(err)
+    } else if(!user) {
+      res.status(404).render('auth/login', { errorMessage: validations.error })
+    } else {
+      req.login(user, (loginError) => {
+        console.log({user});
+        if (loginError) {
           next(loginError)
-        }else  {
+        } else {
           res.redirect('/profile')
-        }      
+        }
       })
     }
-  }) (req,res, next) 
+  })(req, res, next)
 }
 
-module.exports.logout = (req, res, next) =>{
-  req.logout()
-  res.redirect('/profile')
+module.exports.doLogin = (req, res, next) => {
+  doLogin(req, res, next)
+}
+
+module.exports.doLoginGoogle = (req, res, next) => {
+  doLogin(req, res, next, 'google-auth')
+}
+
+module.exports.logout = (req, res, next) => {
+  req.logout();
+  res.redirect('/login');
 }
