@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const Schema = mongoose.Schema;
 
 const EMAIL_PATTERN = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
 const PASSWORD_PATTERN = /^.{8,}$/i;
@@ -24,6 +25,30 @@ const userSchema = new Schema({
   },
 });
 
+userSchema.pre('save', function (next){
+  const user = this;
+
+  if (user.isModified('password')){
+    bcrypt.hash(user.password, SALT_ROUNDS)
+    .then((hash) =>{
+      user.password = hash
+      next()
+    })
+    .catch(err => next(err))
+  } else {
+    next ()
+  }
+})
+
+userSchema.methods.checkPassword = function(password){
+  return bcrypt.compare(password, this.password)
+}
+
+
+
+
 const User = mongoose.model('User', userSchema);
+
+
 
 module.exports = User;
